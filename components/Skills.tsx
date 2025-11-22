@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'lucide-react';
 
 interface Skill {
@@ -57,8 +57,34 @@ const skillCategories: SkillCategory[] = [
 ];
 
 const Skills: React.FC = () => {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          // Once visible, we can stop observing to prevent re-triggering
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.1,
+      }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   return (
-    <section id="skills" className="relative w-full scroll-mt-16 py-20 bg-background-dark">
+    <section id="skills" ref={sectionRef} className="relative w-full scroll-mt-16 py-20 bg-background-dark">
       <a 
         href="#skills" 
         className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-800/50 text-slate-400 backdrop-blur-sm transition-all hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background-dark sm:right-8"
@@ -68,7 +94,7 @@ const Skills: React.FC = () => {
       </a>
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-16 text-center">
+        <div className={`mb-16 text-center transition-opacity duration-700 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
             My Technical Arsenal
           </h2>
@@ -78,19 +104,28 @@ const Skills: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {skillCategories.map((category) => (
-            <div key={category.title} className="flex flex-col gap-4">
+          {skillCategories.map((category, catIndex) => (
+            <div 
+              key={category.title} 
+              className={`flex flex-col gap-4 transition-all duration-700 delay-[${catIndex * 100}ms] ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+            >
               <h3 className="text-xl font-bold text-primary tracking-wide">
                 {category.title}
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {category.skills.map((skill) => (
+                {category.skills.map((skill, skillIndex) => (
                   <div
                     key={skill.name}
-                    className="group flex items-center gap-3 rounded-xl border border-border-dark bg-surface-dark p-4 transition-all duration-300 hover:border-primary/50 hover:bg-primary/5 hover:-translate-y-1"
+                    style={{ animationDelay: `${(catIndex * 100) + (skillIndex * 50)}ms` }}
+                    className={`
+                      group flex items-center gap-3 rounded-xl border border-border-dark bg-surface-dark p-4 
+                      transition-all duration-300 ease-out
+                      hover:border-primary hover:bg-primary/10 hover:shadow-[0_0_20px_rgba(18,105,226,0.3)] hover:-translate-y-2 hover:scale-105
+                      ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}
+                    `}
                   >
-                    <i className={`${skill.iconClass} text-3xl transition-transform group-hover:scale-110`}></i>
-                    <span className="font-semibold text-slate-300 group-hover:text-white">
+                    <i className={`${skill.iconClass} text-3xl transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}></i>
+                    <span className="font-semibold text-slate-300 transition-colors group-hover:text-white">
                       {skill.name}
                     </span>
                   </div>

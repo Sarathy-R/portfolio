@@ -1,9 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Download, Linkedin, Github, Send, Link } from 'lucide-react';
 
 const Contact: React.FC = () => {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section id="contact" className="relative w-full scroll-mt-16 py-20 bg-background-dark">
+    <section id="contact" ref={sectionRef} className="relative w-full scroll-mt-16 py-20 bg-background-dark">
       <a 
         href="#contact" 
         className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-800/50 text-slate-400 backdrop-blur-sm transition-all hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background-dark sm:right-8"
@@ -13,7 +34,7 @@ const Contact: React.FC = () => {
       </a>
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-2xl bg-[#16202C]/50 p-8 sm:p-12 border border-slate-800">
+        <div className={`overflow-hidden rounded-2xl bg-[#16202C]/50 p-8 sm:p-12 border border-slate-800 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}>
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
             
             {/* Left Side Info */}

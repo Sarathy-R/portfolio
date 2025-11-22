@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRight, Link } from 'lucide-react';
 
 interface Article {
@@ -58,13 +58,33 @@ const categories = ['All', 'Python', 'AWS', 'DevOps', 'Architecture', 'Serverles
 
 const Articles: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState('All');
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   const filteredArticles = activeFilter === 'All' 
     ? articlesData 
     : articlesData.filter(article => article.category === activeFilter);
 
   return (
-    <section id="articles" className="relative w-full scroll-mt-16 py-20 bg-[#0d1117]">
+    <section id="articles" ref={sectionRef} className="relative w-full scroll-mt-16 py-20 bg-[#0d1117]">
       <a 
         href="#articles" 
         className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-800/50 text-slate-400 backdrop-blur-sm transition-all hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-[#0d1117] sm:right-8"
@@ -74,7 +94,7 @@ const Articles: React.FC = () => {
       </a>
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 flex flex-col items-center text-center">
+        <div className={`mb-10 flex flex-col items-center text-center transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Writings & Articles
           </h2>
@@ -84,14 +104,14 @@ const Articles: React.FC = () => {
         </div>
 
         {/* Filters */}
-        <div className="mb-12 flex flex-wrap justify-center gap-3">
+        <div className={`mb-12 flex flex-wrap justify-center gap-3 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           {categories.map((category) => (
             <button
               key={category}
               onClick={() => setActiveFilter(category)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-300 ${
                 activeFilter === category
-                  ? 'bg-primary text-white'
+                  ? 'bg-primary text-white shadow-lg shadow-primary/30'
                   : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
               }`}
             >
@@ -102,32 +122,33 @@ const Articles: React.FC = () => {
 
         {/* Articles List */}
         <div className="space-y-4">
-          {filteredArticles.map((article) => (
+          {filteredArticles.map((article, index) => (
             <a
               key={article.id}
               href="#"
-              className="group block rounded-xl border border-transparent bg-background-dark p-6 transition-all duration-300 hover:border-slate-700 hover:bg-[#1a222d]"
+              style={{ transitionDelay: `${index * 100}ms` }}
+              className={`group block rounded-xl border border-slate-800 bg-background-dark p-6 transition-all duration-500 hover:-translate-x-1 hover:-translate-y-1 hover:border-primary hover:bg-[#1a222d] hover:shadow-[4px_4px_0px_0px_rgba(18,105,226,0.5)] ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
             >
               <div className="flex flex-col justify-between sm:flex-row sm:items-center">
                 <div className="flex-1 pr-4">
                   <h3 className="text-lg font-bold text-white transition-colors group-hover:text-primary">
                     {article.title}
                   </h3>
-                  <p className="mt-2 text-sm text-slate-400">
+                  <p className="mt-2 text-sm text-slate-400 group-hover:text-slate-300 transition-colors">
                     {article.summary}
                   </p>
                 </div>
                 <div className="mt-4 flex shrink-0 items-center gap-4 sm:mt-0">
-                  <span className="text-sm font-medium text-slate-500">{article.date}</span>
-                  <ArrowRight className="h-5 w-5 text-slate-500 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
+                  <span className="text-sm font-medium text-slate-500 group-hover:text-primary/80 transition-colors">{article.date}</span>
+                  <ArrowRight className="h-5 w-5 text-slate-500 transition-transform duration-300 group-hover:translate-x-2 group-hover:text-primary" />
                 </div>
               </div>
             </a>
           ))}
         </div>
 
-        <div className="mt-12 flex justify-center">
-          <button className="rounded-lg bg-slate-800 px-8 py-3 text-base font-bold text-white transition-colors hover:bg-slate-700">
+        <div className={`mt-12 flex justify-center transition-all duration-700 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <button className="rounded-lg bg-slate-800 px-8 py-3 text-base font-bold text-white transition-all duration-300 hover:bg-slate-700 hover:shadow-lg hover:-translate-y-1">
             View More Articles
           </button>
         </div>
